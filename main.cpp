@@ -1,5 +1,6 @@
 #include <hwy/highway.h>
 #include <hwy/print.h>
+#include <hwy/timer.h>
 
 #include <vector>
 #include <iostream>
@@ -18,7 +19,7 @@ void MulAddLoop(const T* HWY_RESTRICT mul_array,
         const auto mul = hn::Load(d, mul_array + i);
         const auto add = hn::Load(d, add_array + i);
 
-        hwy::PrintArray(x_array, size);
+        // hwy::PrintArray(x_array, size);
         
         auto x = hn::Load(d, x_array + i);
         x = hn::Add(mul, add);
@@ -34,9 +35,10 @@ int main(){
     std::vector<float> x_arr(16, 3.0);
 
     // for(auto i : v_mult) cout << i  << ' ';
-
+    const double t0 = hwy::platform::Now();
     MulAddLoop(&v_mult[0], &v_add[0], x_arr.size(), &x_arr[0]);
-
+    const double elapsed = hwy::platform::Now() - t0;
+    cout << "elapsed: " << elapsed <<endl;
     for(auto i : x_arr) cout << i  << ' ';
 
     std::cout << "DONE" << std::endl;
