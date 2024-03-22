@@ -1,10 +1,12 @@
+// Static dispatch SSE2
 #include <hwy/highway.h>
-#include <hwy/print.h>
-#include <hwy/timer.h>
+#include <hwy/timer.h>  // Now()
 
 #include <vector>
 #include <iostream>
 #include <numeric>
+
+#include "dynamic_dispatch.h"
 
 namespace hn = hwy::HWY_NAMESPACE;
 
@@ -24,7 +26,7 @@ void MulAddLoop(const T* HWY_RESTRICT mul_array,
         auto x = hn::Load(d, x_array + i);
         x = hn::Add(mul, add);
         hn::Store(x, d, x_array + i);
-  }
+    }
 }
 
 int main(){
@@ -37,21 +39,38 @@ int main(){
     // for(auto i : v_mult) cout << i  << ' ';
 
     {
-    const double t0 = hwy::platform::Now();
-    MulAddLoop(&v_mult[0], &v_add[0], x_arr.size(), &x_arr[0]);
-    const double elapsed = hwy::platform::Now() - t0;
-    cout << "elapsed simd: " << elapsed <<endl;
-    //for(auto i : x_arr) cout << i  << ' ';
+        const double t0 = hwy::platform::Now();
+        for(auto i=0; i < v_mult.size();i++){
+            x_arr[i] = v_mult[i] + v_add[i];
+        }
+        const double elapsed = hwy::platform::Now() - t0;
+        cout << "elapsed single: " << elapsed <<endl;
     }
 
-    {
-    const double t0 = hwy::platform::Now();
-    for(auto i=0; i < v_mult.size();i++){
-        x_arr[i] = v_mult[i] + v_add[i];
+    {   
+        // Static dispatch
+        const double t0 = hwy::platform::Now();
+        MulAddLoop(&v_mult[0], &v_add[0], x_arr.size(), &x_arr[0]);
+        const double elapsed = hwy::platform::Now() - t0;
+        cout << "elapsed SSE2: " << elapsed <<endl;
+        //for(auto i : x_arr) cout << i  << ' ';
     }
-    const double elapsed = hwy::platform::Now() - t0;
-    cout << "elapsed single: " << elapsed <<endl;
+
+    {   
+        // Dynamic dispatch
+        const double t0 = hwy::platform::Now();
+        EXAMPLE_DYNAMIC::CallMulAddLoop(&v_mult[0], &v_add[0], x_arr.size(), &x_arr[0]);
+        const double elapsed = hwy::platform::Now() - t0;
+        cout << "elapsed AVX: " << elapsed <<endl;
+        // for(auto i : x_arr) cout << i  << ' ';
     }
+
+    /*
+    Approx:
+    elapsed single: 0.109093
+    elapsed SSE2: 0.0911126
+    elapsed AVX: 0.0868143
+    */
 
     std::cout << "DONE" << std::endl;
 }
