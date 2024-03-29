@@ -28,14 +28,14 @@ HWY_ATTR void MulAddLoop(const T* HWY_RESTRICT mul_array,
     const hn::ScalableTag<T> d;
 
     for (size_t i = 0; i < size; i += hn::Lanes(d)) {
-        const auto mul = hn::Load(d, mul_array + i);
-        const auto add = hn::Load(d, add_array + i);
+        const auto mul = hn::LoadU(d, mul_array + i);
+        const auto add = hn::LoadU(d, add_array + i);
 
         // hwy::PrintArray(x_array, size);
         
-        auto x = hn::Load(d, x_array + i);
+        auto x = hn::LoadU(d, x_array + i);
         x = hn::Add(mul, add);
-        hn::Store(x, d, x_array + i);
+        hn::StoreU(x, d, x_array + i);
     }
 }
 
