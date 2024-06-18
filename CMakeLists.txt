@@ -1,19 +1,38 @@
 cmake_minimum_required(VERSION 3.15)
+include(ExternalProject)
 
-add_executable(aaa main.cpp dynamic_dispatch.cpp)
+set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
+
+ExternalProject_Add(
+  "hwy"
+  PREFIX "external"
+  GIT_REPOSITORY https://github.com/google/highway
+  DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/hwy_download
+  SOURCE_DIR ${CMAKE_BINARY_DIR}/hwy_src
+  INSTALL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/install_dir
+  BUILD_COMMAND ""
+  CMAKE_ARGS
+  "-DCMAKE_BUILD_TYPE=RelWithDebInfo"
+  "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_SOURCE_DIR}/install_dir"
+  "-DHWY_ENABLE_TESTS=0"
+ )
+
+ set(HWY_INCLUDE ${CMAKE_SOURCE_DIR}/install_dir/include)
+ set(HWY_LIB_PATH ${CMAKE_SOURCE_DIR}/install_dir/lib)
 if (WIN32)
-    set(HWY_INCLUDE C:/Users/kuba/SRC/highway)
-    set(HWY_LIB_PATH C:/Users/kuba/SRC/highway/__build/RelWithDebInfo)
     set(HWY_LIB hwy.lib) # needs to be build with same optimization: RelWithDebInfo
 else()
-    set(HWY_INCLUDE /mnt/c/Users/kuba/SRC/highway/install_prefix_linux/include)
-    set(HWY_LIB_PATH /mnt/c/Users/kuba/SRC/highway/install_prefix_linux/lib)
     set(HWY_LIB hwy.a)     
 endif()
 
-target_include_directories(aaa PRIVATE ${HWY_INCLUDE})
-target_include_directories(aaa PRIVATE .) # recquired for HWY_TARGET_INCLUDE on Linux
-target_link_directories(aaa PRIVATE ${HWY_LIB_PATH})
-target_link_libraries(aaa PUBLIC ${HWY_LIB})
+add_executable(example main.cpp dynamic_dispatch.cpp)
+
+# Build highway first
+add_dependencies(example hwy)
+
+target_include_directories(example PRIVATE ${HWY_INCLUDE})
+target_include_directories(example PRIVATE .) # recquired for HWY_TARGET_INCLUDE on Linux
+target_link_directories(example PRIVATE ${HWY_LIB_PATH})
+target_link_libraries(example PUBLIC ${HWY_LIB})
 

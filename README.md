@@ -1,16 +1,18 @@
+Comparison static vs dynamic dispatch using portable vector intrinsics.
+
 # Build Highway
 
 ## Windows - RelWithDebInfo
 ```
 mkdir __build
-cmake .. -DHWY_ENABLE_TESTS=0 -DCMAKE_INSTALL_PREFIX=../install_prefix_msvc
+cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo
 cmake --build . --target install --config RelWithDebInfo
 ```
 
 ## Linux
 ```
 mkdir __build_linux
-cmake .. -DHWY_ENABLE_TESTS=0 -DCMAKE_INSTALL_PREFIX=../install_prefix_linux
+cmake ..
 make -j 8 install
 ```
 
